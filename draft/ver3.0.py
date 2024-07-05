@@ -152,18 +152,18 @@ def resume_recording():
     recording_label.config(text="Recording", bg="red")
     start_new_recording()
 
-def stop_rec():
+def stop_rec():#fatto
     global recording, output
     recording = False
     if output:
         output.release()
 
-def exit_button():
+def exit_button():#fatto
     global cap
     cap.release()
     root.destroy()
 
-def main():
+def main(): #done
     global folder_name, root, cap, label_widget, recording, output, recording_label, timer_label, spin, duration_entry
     
     recording = False
