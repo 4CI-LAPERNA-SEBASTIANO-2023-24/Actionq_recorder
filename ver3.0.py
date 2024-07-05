@@ -2,7 +2,7 @@ import os
 import cv2 as cv
 import tkinter as tk
 from PIL import Image, ImageTk
-
+# hi
 spin = None
 duration_entry = None
 
