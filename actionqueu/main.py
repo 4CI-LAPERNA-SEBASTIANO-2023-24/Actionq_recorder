@@ -7,8 +7,8 @@ class VideoRecorder:
     def __init__(self, root):
         self.recording = False
         self.output = None
-        self.cap = cv.VideoCapture(0, cv.CAP_DSHOW)
-        self.cap.set(cv.CAP_PROP_FPS, 24.0)
+        self.cap = cv.VideoCapture(1, cv.CAP_DSHOW)
+        self.cap.set(cv.CAP_PROP_FPS, 10.0)
         self.frame = None
         self.loop_counter = 0
         self.remaining_time = 0
@@ -106,7 +106,7 @@ class VideoRecorder:
                 except Exception as e:
                     print(f"Error writing frame: {e}")
 
-        self.label_widget.after(24, self.update_frame)
+        self.label_widget.after(10, self.update_frame)
 
 
     def start_rec(self):
@@ -134,7 +134,7 @@ class VideoRecorder:
         fourcc = cv.VideoWriter_fourcc(*'mp4v')
         nomefile = os.path.join(folder, self.create_new_filename(folder))
         try:
-            self.output = cv.VideoWriter(nomefile, fourcc, 24.0, (640, 480))
+            self.output = cv.VideoWriter(nomefile, fourcc, 10.0, (640, 480))
             self.remaining_time = int(self.duration_entry.get())
             self.update_timer()
         except Exception as e:
@@ -171,11 +171,3 @@ class VideoRecorder:
     def exit_button(self):
         self.cap.release()
         self.root.destroy()
-
-def main():
-    root = tk.Tk()
-    app = VideoRecorder(root)
-    root.mainloop()
-
-if __name__ == "__main__":
-    main()
