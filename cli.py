@@ -3,8 +3,8 @@ import time
 import argparse
 import os
 import cv2
-from icecream import ic
-from main import VideoRecorder
+#from printecream import print
+import gui
 
 
 class CameraLooper:
@@ -47,7 +47,7 @@ class CameraLooper:
         vid.set(cv2.CAP_PROP_FPS, 16.0)
 
         if not vid.isOpened():
-            ic("Error: Could not open video device.")
+            print("Error: Could not open video devprinte.")
             return False
 
         frame_width = int(vid.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -64,7 +64,7 @@ class CameraLooper:
         while vid.isOpened():
             ret, frame = vid.read()
             if not ret:
-                ic("Error: Failed to capture image")
+                print("Error: Failed to capture image")
                 break
 
             frame = cv2.flip(frame, 1)
@@ -94,9 +94,9 @@ class CameraLooper:
         :return: None
         """
         for i in range(self.countdown, 0, -1):
-            ic(i)
+            print(i)
             time.sleep(1)
-        ic("Starting the camera up ...")
+        print("Starting the camera up ...")
 
 
     def file_name(self) -> str:
@@ -162,11 +162,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if args.g:
         root = tk.Tk()
-        app = VideoRecorder(root)
+        app = gui.GUI(root)
         root.mainloop()
     else:
         camera_looper = CameraLooper(args.output, args.looping_value, args.duration_vid, args.countdown, args.camera)
         camera_looper.looping_cam()
 
     t2 = time.time()
-    ic(f"Executed in {t2 - t1} seconds")
+    print(f"Executed in {t2 - t1} seconds")
