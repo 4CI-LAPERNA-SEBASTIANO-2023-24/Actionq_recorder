@@ -3,9 +3,9 @@ import time
 import argparse
 import os
 import cv2
-#from printecream import print
-import gui
-
+from icecream import ic
+import guis
+import guil
 
 class CameraLooper:
     def __init__(self, path="./", n_loop=1, vid_dur=10, countdown=0, cam=0):
@@ -15,7 +15,7 @@ class CameraLooper:
         self.duration = vid_dur
         self.countdown = countdown
         self.cam = cam
-
+        self.index = 0  # Initialize index for unique filenames
 
     def looping_cam(self) -> None:
         """
@@ -25,37 +25,38 @@ class CameraLooper:
         """
         if self.n_loop != -1:
             for i in range(self.n_loop):
-                self.open_cam(self.duration)
+                self.count_down()
+                exit_code = self.open_cam(self.duration)
+                if exit_code == 1:
+                    break
         else:
             while True:
-                exir_code = self.open_cam(self.duration)
-                if exir_code:
+                self.count_down()
+                exit_code = self.open_cam(self.duration)
+                if exit_code == 1:
                     break
 
-
-    def open_cam(self, duration: int) -> bool:
+    def open_cam(self, duration: int) -> int:
         """
         Method that opens the camera and displays the feed until the escape button is pressed.
         This method also saves the video streamed into a file with the specified extension.
 
-        :return: bool: True if 'q' key was pressed, otherwise False
+        :return: int: 1 if 'q' key was pressed, 2 if 'ESC' key was pressed, otherwise 0
         """
-        
-        self.count_down()
 
         vid = cv2.VideoCapture(self.cam, cv2.CAP_DSHOW)
         vid.set(cv2.CAP_PROP_FPS, 16.0)
 
         if not vid.isOpened():
-            print("Error: Could not open video devprinte.")
-            return False
+            ic("Error: Could not open video device.")
+            return 0
 
         frame_width = int(vid.get(cv2.CAP_PROP_FRAME_WIDTH))
         frame_height = int(vid.get(cv2.CAP_PROP_FRAME_HEIGHT))
         size = (frame_width, frame_height)
 
         result = cv2.VideoWriter(
-            f"{self.path}/{self.file_name()}",
+            self.get_next_filename(),
             cv2.VideoWriter_fourcc(*'mp4v'),
             16.0, size
         )
@@ -64,7 +65,7 @@ class CameraLooper:
         while vid.isOpened():
             ret, frame = vid.read()
             if not ret:
-                print("Error: Failed to capture image")
+                ic("Error: Failed to capture image")
                 break
 
             frame = cv2.flip(frame, 1)
@@ -72,11 +73,16 @@ class CameraLooper:
             cv2.imshow('Camera', frame)
 
             key = cv2.waitKey(1) & 0xFF
-            if key == 27 or key == ord('q'):
+            if key == ord('q'):
                 vid.release()
                 result.release()
                 cv2.destroyAllWindows()
-                return True
+                return 1
+            elif key == 27:
+                vid.release()
+                result.release()
+                cv2.destroyAllWindows()
+                return 2
 
             if time.time() - start_time >= duration:
                 break
@@ -84,8 +90,7 @@ class CameraLooper:
         vid.release()
         result.release()
         cv2.destroyAllWindows()
-        return False
-
+        return 0
 
     def count_down(self) -> None:
         """
@@ -94,43 +99,29 @@ class CameraLooper:
         :return: None
         """
         for i in range(self.countdown, 0, -1):
-            print(i)
+            ic(i)
             time.sleep(1)
-        print("Starting the camera up ...")
+        ic("Starting the camera up ...")
 
-
-    def file_name(self) -> str:
+    def get_next_filename(self) -> str:
         """
-        Method that create the name of the output file adding an incremental index for organization purpose
+        Method that generates the next available filename in the format output_000.mp4, output_001.mp4, etc.
 
-        :return str filename: the filename of the output file
+        :return: str: the next available filename
         """
-        n = 0
-        file_lists = self.map_dir()
-        filename = self.name_file(n)
-        while filename in file_lists:
-            for file in file_lists:
-                if filename == file:
-                    n += 1
-            filename = self.name_file(n)
-        return filename
-
-
-    def name_file(self, n: int) -> str:
-        """
-        Method that gets the file name updated with the index n
-
-        :param int n: incremental index
-        :return str filename: the file name with the index
-        """
-        return f'output{n}.{self.ext}'
-
+        while True:
+            filename = f"output_{self.index:03d}.{self.ext}"
+            file_path = os.path.join(self.path, filename)
+            if not os.path.exists(file_path):
+                self.index += 1
+                return file_path
+            self.index += 1
 
     def map_dir(self) -> list:
         """
-        Method that gets the file of the cwd and return it like a list
+        Method that gets the list of files in the current working directory.
 
-        :return list file_lists: a list of file of the cwd
+        :return: list: a list of filenames in the current directory
         """
         return os.listdir(self.path)
 
@@ -140,7 +131,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(
         description="Program that opens the camera and saves the video in the current working directory."
-                    " If you want to exit the cam you have to press the ESCape button !!!"
+                    " If you want to exit the cam you have to press the ESCape button or 'q' to quit!!!"
     )
     parser.add_argument("-g", action="store_true", help="Run the program in GUI format")
     parser.add_argument("output", type=str, nargs='?', default="./", help="URI of the output video")
@@ -161,12 +152,17 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     if args.g:
+        #gino = guil.VideoRecorder()
+        #gino.run()
+
         root = tk.Tk()
-        app = gui.GUI(root)
+        app = guis.CameraGUI(root)
         root.mainloop()
+
+
     else:
         camera_looper = CameraLooper(args.output, args.looping_value, args.duration_vid, args.countdown, args.camera)
         camera_looper.looping_cam()
 
     t2 = time.time()
-    print(f"Executed in {t2 - t1} seconds")
+    ic(f"Executed in {t2 - t1} seconds")
