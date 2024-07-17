@@ -53,15 +53,18 @@ class CameraRecorder():
     def start(self):
 
         t1 = time.time()
+
+        self.start_camera()
         if self.gui:
-            #gino = guil.VideoRecorder()
-            #gino.run()
+           self.start_gui()
+        else:
+            self.start_cli()
+        
+        t2 = time.time()
+        ic(f"Executed in {t2 - t1} seconds")
+        cv2.destroyAllWindows()
 
-            root = tk.Tk()
-            app = guis.CameraGUI(root)
-            root.mainloop()
-
-
+    def start_camera(self):
         self.camera_manager = CameraManager(self.output, self.looping_value, self.duration_vid, self.countdown, self.camera)
         self.camera_manager.on_start = self.on_camera_start
         self.camera_manager.on_stop = self.on_camera_stop
@@ -69,7 +72,16 @@ class CameraRecorder():
         self.camera_manager.on_frame_ready = self.on_camera_frame
 
         self.camera_manager.start_camera()
-        
+
+
+    def start_gui(self):
+        #gino = guil.VideoRecorder()
+        #gino.run()
+        root = tk.Tk()
+        app = guis.CameraGUI(root)
+        root.mainloop()
+
+    def start_cli(self):
         while self.camera_manager.is_running():
             if self.last_frame is not None:
                 cv2.imshow('Camera', self.last_frame)
@@ -77,15 +89,11 @@ class CameraRecorder():
             key = cv2.waitKey(1) & 0xFF
             if key == ord('q'):
                 ic('key Q')
-                self.camera_manager.close_cam()
+                self.camera_manager.close_camera()
                 break
             elif key == 27:
                 ic('key ESC')
-                self.camera_manager.close_cam(0)
-
-        t2 = time.time()
-        ic(f"Executed in {t2 - t1} seconds")
-        cv2.destroyAllWindows()
+                self.camera_manager.restart_camera()
 
 
     def on_camera_start(self):
@@ -108,7 +116,7 @@ class CameraRecorder():
     def on_signal(self, sig, frame):
         print('You pressed Ctrl+C!')
         if self.camera_manager is not None:
-            self.camera_manager.close_cam(-2)
+            self.camera_manager.close_camera()
 
         sys.exit(0)
 

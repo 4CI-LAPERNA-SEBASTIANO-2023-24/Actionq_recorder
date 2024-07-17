@@ -103,16 +103,17 @@ class CameraManager:
     def is_running(self):
         return not self.finished
 
-           
-    def close_cam(self,mode=-1):
+    
+    def restart_camera(self):
         if self.camera_thread is None: return
         if not self.camera_thread.is_alive: return
-        self.camera_control = mode
-        if mode == -1:
-            self.camera_thread.join()
-        if mode == -2:
-            self.camera_thread.kill()
-        return 0
+        self.camera_control = 0
+           
+    def close_camera(self):
+        if self.camera_thread is None: return
+        if not self.camera_thread.is_alive: return
+        self.camera_control = -1
+        self.camera_thread.join()
 
     def count_down(self) -> None:
         """
