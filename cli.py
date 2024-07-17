@@ -15,7 +15,7 @@ class CameraLooper:
         self.duration = vid_dur
         self.countdown = countdown
         self.cam = cam
-        self.index = 0  # Initialize index for unique filenames
+        self.index = 0 
 
     def looping_cam(self) -> None:
         """

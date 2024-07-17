@@ -88,7 +88,7 @@ class CameraGUI:
         self.camera_index = int(self.camera_selection.get())
         self.cap = cv2.VideoCapture(self.camera_index)
         if not self.cap.isOpened():
-            messagebox.showerror("Error", f"Failed to open camera {self.camera_index}")
+            messagebox.showerror("Error", f"Failed to open camera {self.camera_index}")  #update
             return
 
         self.show_frame()
@@ -104,10 +104,10 @@ class CameraGUI:
         self.camera_canvas.after(10, self.show_frame)
 
     def update_camera_index(self, value):
-        self.camera_index = int(value)
+        self.camera_index = int(value) 
         if self.cap.isOpened():
             self.cap.release()
-        self.cap = cv2.VideoCapture(self.camera_index)
+        self.cap = cv2.VideoCapture(self.camera_index)  #update
 
     def select_folder(self):
         self.output_folder = filedialog.askdirectory()
@@ -123,19 +123,19 @@ class CameraGUI:
 
         # Validate input values
         if not os.path.isdir(self.output_folder):
-            messagebox.showerror("Error", "Please select a valid output folder.")
+            messagebox.showerror("Error", "Please select a valid output folder.") #update
             return
 
         if self.recording_duration is None or self.recording_duration < 0 or self.countdown_time < 0 or self.num_videos == 0:
-            messagebox.showerror("Error", "Please enter valid values for duration, countdown time, and number of videos.")
+            messagebox.showerror("Error", "Please enter valid values for duration, countdown time, and number of videos.") #update
             return
 
-        self.recording = True
+        self.recording = True 
         self.start_button.config(state=tk.DISABLED)
         self.stop_button.config(state=tk.NORMAL)
 
         # Start recording thread with countdown
-        self.recording_thread = threading.Thread(target=self.record_video_with_countdown)
+        self.recording_thread = threading.Thread(target=self.record_video_with_countdown) #update
         self.recording_thread.start()
 
     def stop_recording(self):
@@ -157,26 +157,28 @@ class CameraGUI:
         while self.recording:
             # Countdown before recording starts
             for i in range(self.countdown_time, 0, -1):
-                self.show_countdown(i)
+                self.show_countdown(i) #update
                 time.sleep(1)
 
             # Start recording
-            timestamp = time.strftime("%Y%m%d-%H%M%S")
-            file_name = os.path.join(self.output_folder, f"output_{self.file_index:03d}.mp4")
+            file_name = os.path.join(self.output_folder, f"output_{self.file_index:03d}.mp4") #update
 
             while os.path.exists(file_name):
                 self.file_index += 1
-                file_name = os.path.join(self.output_folder, f"output_{self.file_index:03d}.mp4")
+                file_name = os.path.join(self.output_folder, f"output_{self.file_index:03d}.mp4") #update
 
+            frame_width = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+            frame_height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            size = (frame_width, frame_height)
             fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-            out = cv2.VideoWriter(file_name, fourcc, 20.0, (640, 480))
+            out = cv2.VideoWriter(file_name, fourcc, 20.0, size)
 
             start_time = time.time()
             while self.recording:
                 ret, frame = self.cap.read()
                 if ret:
                     frame = cv2.flip(frame, 1)
-                    out.write(frame)
+                    out.write(frame) 
                 else:
                     break
 
@@ -207,3 +209,4 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = CameraGUI(root)
     root.mainloop()
+ 
