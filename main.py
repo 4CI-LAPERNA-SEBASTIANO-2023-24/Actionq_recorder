@@ -14,7 +14,7 @@ def main():
         description="Program that opens the camera and saves the video in the current working directory."
                     " If you want to exit the cam you have to press the ESCape button or 'q' to quit!!!"
     )
-    parser.add_argument("-g", action="store_true", help="Run the program in GUI format", )#default=True
+    parser.add_argument("-g", action="store_true", help="Run the program in GUI format", default=True)
     parser.add_argument("-o", dest="output",   type=str, nargs='?', default="./", help="URI of the output video")
     parser.add_argument("-l", dest="looping_value", type=str, nargs='?', default=1, 
         help="Number of times to capture video (the default value is 1, if you insert -1 it loops indefinitely until 'q' is pressed)"

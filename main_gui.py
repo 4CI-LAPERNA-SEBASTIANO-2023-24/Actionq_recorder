@@ -45,7 +45,8 @@ class CameraGUI:
 
         self.folder_entry = tk.Entry(self.root, width=40)
         self.folder_entry.grid(row=0, column=1, padx=10, pady=10, sticky=tk.W)
-        self.folder_entry.insert(0, os.getcwd())
+        #self.folder_entry.insert(0, os.getcwd())
+        self.folder_entry.insert(0, self.camera_manager.path)
 
         folder_button = tk.Button(self.root, text="Select Folder", command=self.select_folder)
         folder_button.grid(row=0, column=2, padx=10, pady=10, sticky=tk.W)
@@ -56,7 +57,8 @@ class CameraGUI:
 
         self.duration_entry = tk.Entry(self.root, width=10)
         self.duration_entry.grid(row=1, column=1, padx=10, pady=10, sticky=tk.W)
-        self.duration_entry.insert(0, "10.0")
+        #self.duration_entry.insert(0, "10.0")
+        self.duration_entry.insert(0, str(self.camera_manager.duration))
 
         # Countdown time entry
         countdown_label = tk.Label(self.root, text="Countdown Time (seconds):")
@@ -64,7 +66,8 @@ class CameraGUI:
 
         self.countdown_entry = tk.Entry(self.root, width=10)
         self.countdown_entry.grid(row=2, column=1, padx=10, pady=10, sticky=tk.W)
-        self.countdown_entry.insert(0, "3")
+        #self.countdown_entry.insert(0, "3")
+        self.countdown_entry.insert(0, str(self.camera_manager.countdown))
 
         # Number of videos entry
         num_videos_label = tk.Label(self.root, text="Number of Videos (-1 for loop):")
@@ -72,14 +75,17 @@ class CameraGUI:
 
         self.num_videos_entry = tk.Entry(self.root, width=10)
         self.num_videos_entry.grid(row=3, column=1, padx=10, pady=10, sticky=tk.W)
-        self.num_videos_entry.insert(0, "1")
+        #self.num_videos_entry.insert(0, "1")
+        self.num_videos_entry.insert(0, str(self.camera_manager.n_loop))
 
         # Camera selection dropdown
         camera_label = tk.Label(self.root, text="Select Camera:")
         camera_label.grid(row=4, column=0, padx=10, pady=10, sticky=tk.W)
 
         self.camera_selection = tk.StringVar(self.root)
-        self.camera_selection.set("0")  # Default to camera 0
+        #self.camera_selection.set("0")  # Default to camera 0
+        self.camera_selection.set(str(self.camera_manager.camera))  # Default to camera 0
+        
 
         self.camera_dropdown = tk.OptionMenu(self.root, self.camera_selection, "0", "1", "2", "3", command=self.update_camera_index)
         self.camera_dropdown.grid(row=4, column=1, padx=10, pady=10, sticky=tk.W)

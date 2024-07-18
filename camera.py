@@ -9,14 +9,14 @@ import guil
 import threading
 
 class CameraManager:
-    def __init__(self, path="./", n_loop=1, vid_dur=10, countdown=0, cam=0, debug=False, fps=.0, scale=0.5):
+    def __init__(self, path="./", n_loop=1, vid_dur=10, countdown=0, cam=0, debug=False, fps=16.0, scale=0.5):
         self.debug = debug
         self.path = path
         self.ext = "mp4"
         self.n_loop = n_loop
         self.duration = vid_dur
         self.countdown = countdown
-        self.cam = cam
+        self.camera = cam
         self.index = 0 
 
         self.on_start = None
@@ -34,7 +34,7 @@ class CameraManager:
 
         self.finished = False
         self.recording = False
-        self.recording_time = 0
+        self.recording_time = 0.0
         self.fps = fps
         self.scale = scale
 
@@ -62,38 +62,45 @@ class CameraManager:
         self.did_stop()
 
     def start_camera(self):
+        self.close_camera()
         self.finished = False
         self.camera_control = 1
         #self.camera_thread = threading.Thread(target=self.looping_cam)
         self.camera_thread = threading.Thread(target=self.open_camera)
         self.camera_thread.start()
 
+
     def start_recording(self):
+        t=threading.Thread(target=self.start_recording_thread)
+        t.start()
+        
         if not self.vid.isOpened():
             self.open_camera()
 
-        t=threading.Thread(target=self.start_recording_thread)
-        t.start()
+        
 
     def start_recording_thread(self):
-        self.count_down()
+        t=threading.Thread(target=self.count_down)
+        t.start()
         frame_width = int(self.vid.get(cv2.CAP_PROP_FRAME_WIDTH)) * self.scale
         frame_height = int(self.vid.get(cv2.CAP_PROP_FRAME_HEIGHT)) * self.scale
         size = (int(frame_width), int(frame_height))
         self.writer = cv2.VideoWriter(
-            self.get_next_filename(),
-            cv2.VideoWriter_fourcc(*'mp4v'),
-            self.fps, size
+            filename=self.get_next_filename(),
+            fourcc=cv2.VideoWriter_fourcc(*'mp4v'),
+            fps=self.fps, 
+            frameSize=size
         )
-        self.recording_time = time.time()
+        t.join()
+        self.recording_time = time.time() + 0.1
         self.recording = True
         
         
         
-
+ 
     def stop_recording(self):
         self.recording = False
-        if self.waiting is not None:
+        if self.writer is not None:
             self.writer.release()
             self.writer = None
 
@@ -109,13 +116,13 @@ class CameraManager:
             self.vid.release()
             self.vid = None 
 
-        self.vid = cv2.VideoCapture(self.cam, cv2.CAP_DSHOW)
+        self.vid = cv2.VideoCapture(self.camera, cv2.CAP_DSHOW)
         self.vid.set(cv2.CAP_PROP_FPS, self.fps)
 
         if not self.vid.isOpened():
             self.did_error("Error: Could not open video device.")
             return 0
-        
+
 
 
         #self.recording_time = time.time()
@@ -124,25 +131,26 @@ class CameraManager:
             ret, frame = self.vid.read()
             if not ret:
                 self.did_error("Error: Failed to capture image")
-                return
+                break
             frame = self.transform_frame(frame)
             self.did_frame_ready(frame)
 
 
-            if self.camera_control != 1: return 
+            if self.camera_control != 1: break 
 
             if self.recording: 
                 self.writer.write(frame)
 
                 if time.time() - self.recording_time < self.duration: continue
-                self.writer.release()
+                self.stop_recording()
+                ic(self.n_loop) # new
                 
-                if self.n_loop == 0:
-                    self.recording = False
-                else:
-                    if self.n_loop > 0:
-                        self.n_loop -= 1
+                if self.n_loop > 1:
+                    self.n_loop -= 1
                     self.start_recording()
+                if self.n_loop == -1:
+                    self.start_recording()
+                
                         
 
         self.did_stop()
@@ -163,17 +171,22 @@ class CameraManager:
     def is_recording(self):
         return not self.recording
 
-    
+
     def restart_camera(self):
         if self.camera_thread is None: return
         if not self.camera_thread.is_alive: return
         self.camera_control = 0
-           
+        self.open_camera() # new
+
     def close_camera(self):
         if self.camera_thread is None: return
         if not self.camera_thread.is_alive: return
         self.camera_control = -1
         self.camera_thread.join()
+
+        if self.vid is not None:
+            self.vid.release()
+            self.vid = None 
 
     def count_down(self) -> None:
         """
@@ -226,7 +239,7 @@ class CameraManager:
     
     def did_stop(self):
         self.vid.release()
-        if self.writer is None: self.writer.release()
+        if self.writer is not None: self.writer.release()
         self.finished = True
 
         if self.debug:
