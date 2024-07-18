@@ -77,9 +77,9 @@ class CameraManager:
 
     def start_recording_thread(self):
         self.count_down()
-        frame_width = int(self.vid.get(cv2.CAP_PROP_FRAME_WIDTH))
-        frame_height = int(self.vid.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        size = (frame_width, frame_height)
+        frame_width = int(self.vid.get(cv2.CAP_PROP_FRAME_WIDTH)) * self.scale
+        frame_height = int(self.vid.get(cv2.CAP_PROP_FRAME_HEIGHT)) * self.scale
+        size = (int(frame_width), int(frame_height))
         self.writer = cv2.VideoWriter(
             self.get_next_filename(),
             cv2.VideoWriter_fourcc(*'mp4v'),
