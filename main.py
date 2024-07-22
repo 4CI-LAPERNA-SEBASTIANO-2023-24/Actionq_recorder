@@ -14,7 +14,7 @@ def main():
         description="Program that opens the camera and saves the video in the current working directory."
                     " If you want to exit the cam you have to press the ESCape button or 'q' to quit!!!"
     )
-    parser.add_argument("-g", action="store_true", help="Run the program in GUI format", default=True)
+    parser.add_argument("-g", action="store_true", help="Run the program in GUI format", default=False)
     parser.add_argument("-o", dest="output",   type=str, nargs='?', default="./", help="URI of the output video")
     parser.add_argument("-l", dest="looping_value", type=str, nargs='?', default=1, 
         help="Number of times to capture video (the default value is 1, if you insert -1 it loops indefinitely until 'q' is pressed)"
@@ -65,8 +65,8 @@ class CameraRecorder():
         t2 = time.time()
         ic(f"Executed in {t2 - t1} seconds")
         cv2.destroyAllWindows()
-        
-        
+
+
 
 
     def start_gui(self):
@@ -75,6 +75,7 @@ class CameraRecorder():
         
         self.gui = CameraGUI(self.camera_manager)
         self.gui.show()
+        
 
     def start_cli(self):
 
@@ -84,9 +85,14 @@ class CameraRecorder():
         self.camera_manager.on_countdown = self.on_camera_countdown
         self.camera_manager.on_frame_ready = self.on_camera_frame
         self.camera_manager.start_camera()
+        while self.camera_manager.vid is None:
+            time.sleep(0.1)
+        self.camera_manager.start_recording()
+        while not self.camera_manager.is_recording():
+            time.sleep(0.1)
 
 
-        while self.camera_manager.is_running():
+        while self.camera_manager.n_loop != 0:
             if self.last_frame is not None:
                 cv2.imshow('Camera', self.last_frame)
 
@@ -98,9 +104,11 @@ class CameraRecorder():
             elif key == 27:
                 ic('key ESC')
                 self.camera_manager.restart_camera()
+        self.camera_manager.close_camera()
 
 
     def on_camera_start(self):
+        #self.camera_manager.start_recording()
         ic("Starting the camera up ...")
 
     def on_camera_stop(self):

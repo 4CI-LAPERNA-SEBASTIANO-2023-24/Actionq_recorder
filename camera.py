@@ -71,11 +71,11 @@ class CameraManager:
 
 
     def start_recording(self):
+        if self.vid is None or not self.vid.isOpened():
+            self.start_camera()
+        
         t=threading.Thread(target=self.start_recording_thread)
         t.start()
-        
-        if not self.vid.isOpened():
-            self.open_camera()
 
         
 
@@ -145,10 +145,12 @@ class CameraManager:
                 self.stop_recording()
                 ic(self.n_loop) # new
                 
-                if self.n_loop > 1:
+                if self.n_loop > 0:
                     self.n_loop -= 1
+                    
+                if self.n_loop > 0:
                     self.start_recording()
-                if self.n_loop == -1:
+                elif self.n_loop == -1:
                     self.start_recording()
                 
                         
@@ -175,13 +177,14 @@ class CameraManager:
     def restart_camera(self):
         if self.camera_thread is None: return
         if not self.camera_thread.is_alive: return
-        self.camera_control = 0
-        self.open_camera() # new
-
+        self.stop_recording()
+        self.start_recording()
+        
     def close_camera(self):
         if self.camera_thread is None: return
         if not self.camera_thread.is_alive: return
         self.camera_control = -1
+        self.stop_recording()
         self.camera_thread.join()
 
         if self.vid is not None:
